@@ -1,8 +1,9 @@
+"""
+    Program
+"""
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-
-import itertools
 
 import pandas as pd
 import tensorflow as tf
@@ -19,6 +20,8 @@ FEATURES = ["x-bos", "y-box", "width", "high", "onpic", "x-bar", "y-bar", "x2bar
 LABEL = "lettr"
 LABEL_VOCABULARY = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
                     "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+
+HIDDEN_UNITS = [100, 100]
 
 def get_input_fn(data_set, num_epochs=None, shuffle=True):
     """
@@ -40,7 +43,7 @@ def get_input_fn(data_set, num_epochs=None, shuffle=True):
         num_epochs=num_epochs,
         shuffle=shuffle)
 
-def main(unused_argv):
+def main(_):
     """
 		Main
     """
@@ -57,19 +60,19 @@ def main(unused_argv):
     feature_cols = [tf.feature_column.numeric_column(k) for k in FEATURES]
 
     classifier = tf.estimator.DNNClassifier(
-      		hidden_units=[60, 60],
+      		hidden_units=HIDDEN_UNITS,
 	      	feature_columns=feature_cols,
 		 	    model_dir="/tmp/letter-recognition",
 			     n_classes=26,
 			     label_vocabulary=LABEL_VOCABULARY)
-				 # activation_fn=tf.nn.tanh)
+                 # activation_fn=tf.nn.tanh)
 
     train_writer = tf.summary.FileWriter("/tmp/letter-recognition/train", sess.graph)
     test_writer = tf.summary.FileWriter("/tmp/letter-recognition/test")
     tf.global_variables_initializer().run()
 
 	# Train model
-    classifier.train(input_fn=get_input_fn(training_set), steps=100000)
+    classifier.train(input_fn=get_input_fn(training_set), steps=50000)
 	# Test model
     accuracy = classifier.evaluate(
 		      input_fn=get_input_fn(
