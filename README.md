@@ -16,16 +16,20 @@ Its main goal is :
 This isn't image recognition.
 
 This project was made to learn TensorFlow, and use one Deep Neural Network for classification, similarly as the Housing Data from the [TensorFlow library Get Started Page](https://www.tensorflow.org/get_started/input_fn).
+The results obtained from the Deep Neural Network are compared to the results of the Random Forest.
 
 The original dataset has been divided in 3 parts : the training dataset, the test dataset, and the evaluation dataset.
 
-## Python Script
+## Models
 
-```$> python letter-recognition.py```
+The model is trained on the ***16000*** examples of the [letter-recognition-training.csv](https://github.com/jfourmond/TensorFlowLetterRecognition/blob/master/letter-recognition-training.csv) file, evaluated on the ***3900*** examples of the [letter-recognition-test.csv](https://github.com/jfourmond/TensorFlowLetterRecognition/blob/master/letter-recognition-test.csv) file, and finally predictions are made on the 100 ***examples*** of the [letter-recognition-eval.csv](https://github.com/jfourmond/TensorFlowLetterRecognition/blob/master/letter-recognition-eval.csv) file.
 
-### Model
+### Deep Learning Model
 
-The current model of the python script is a Deep Neural Network Classifier with the following caracteristics :
+Deep Neural Network : 
+```$> python letter-recognition-dnn.py```
+
+The Deep Neural Network has the following caracteristics :
 - 2 hidden layers, with, for the both, 100 units
 - 26 output neurons (number of classes)
 - Optimizer algorithm : ***Adagrad***
@@ -41,13 +45,20 @@ classifier = tf.estimator.DNNClassifier(
 			 label_vocabulary=LABEL_VOCABULARY)
 ```
 
-The model is trained on the ***16000*** examples of the [letter-recognition-training.csv](https://github.com/jfourmond/TensorFlowLetterRecognition/blob/master/letter-recognition-training.csv) file, tested on the ***3900*** examples of the [letter-recognition-test.csv](https://github.com/jfourmond/TensorFlowLetterRecognition/blob/master/letter-recognition-test.csv) file, and finally evaluated on the 100 ***examples*** of the [letter-recognition-eval.csv](https://github.com/jfourmond/TensorFlowLetterRecognition/blob/master/letter-recognition-eval.csv) file.
-
 The model is saved in the directory "*/tmp/letter-recognition*".
+
+### Random Forest Model
+
+Random Forest :
+```$> python letter-recognition-rf.py```
+
+```python
+clf = RandomForestClassifier(max_depth=30, random_state=0)
+```
 
 ### Visualisation
 
-TensorBoard can be used in order to visualize the graph, or the learning process, by specifying the model directory...
+TensorBoard can be used in order to visualize the graph, or the learning process, of the neural network, by specifying the model directory...
 
 ``` $> tensorboard --logdir=/tmp/letter-recognition```
 
@@ -59,9 +70,11 @@ TensorBoard can be used in order to visualize the graph, or the learning process
 - CPU : Intel(R) Core(TM)2 Duo CPU P8600 @ 2.40GHz 2.39GHz
 - RAM : 4 Go
 
-#### Accuracy with one layer
+#### Deep Neural Network
 
-##### Activation Function : ReLU
+##### Accuracy with one layer
+
+###### Activation Function : ReLU
 
 | Layer 1 | Loss Final Step | Accuracy | Execution Time (s) |
 |--------:|----------------:|---------:|-------------------:|
@@ -78,7 +91,7 @@ TensorBoard can be used in order to visualize the graph, or the learning process
 |      90 |         28.4253 |    0.917 |             373.81 |
 |     100 |          28.844 |    0.917 |            396.768 |
 
-##### Activation Function : TANH
+###### Activation Function : TANH
 
 | Layer 1 | Loss Final Step | Accuracy | Execution Time (s) |
 |--------:|----------------:|---------:|-------------------:|
@@ -95,9 +108,9 @@ TensorBoard can be used in order to visualize the graph, or the learning process
 |      90 |         18.6947 |    0.935 |            345.419 |
 |     100 |         13.5394 |    0.942 |            349.571 |
 
-#### Accuracy with two layers
+##### Accuracy with two layers
 
-##### Activation Function : ReLU
+###### Activation Function : ReLU
 
 | Layer 1 | Layer 2 | Loss Final Step | Accuracy | Execution Time (s) |
 |--------:|--------:|----------------:|---------:|-------------------:|
@@ -114,7 +127,7 @@ TensorBoard can be used in order to visualize the graph, or the learning process
 |      90 |      90 |         1.87851 |    0.954 |            412.518 |
 |     100 |     100 |         2.55939 |    0.953 |            407.731 |
 
-##### Activation Function : TANH
+###### Activation Function : TANH
 
 | Layer 1 | Layer 2 | Loss Final Step | Accuracy | Execution Time (s) |
 |--------:|--------:|----------------:|---------:|-------------------:|
@@ -131,9 +144,9 @@ TensorBoard can be used in order to visualize the graph, or the learning process
 |      90 |      90 |         1.79646 |    0.958 |            423.777 |
 |     100 |     100 |          1.4419 |    0.964 |            401.549 |
 
-#### Accuracy with three layers
+##### Accuracy with three layers
 
-##### Activation Function : ReLU
+###### Activation Function : ReLU
 
 | Layer 1 | Layer 2 | Layer 3 | Loss Final Step | Accuracy | Execution Time (s) |
 |--------:|--------:|--------:|----------------:|---------:|-------------------:|
@@ -150,7 +163,7 @@ TensorBoard can be used in order to visualize the graph, or the learning process
 |      90 |      90 |      90 |         0.17778 |    0.952 |            472.883 |
 |     100 |     100 |     100 |        0.528759 |    0.956 |            487.679 |
 
-##### Activation Function : TANH
+###### Activation Function : TANH
 
 | Layer 1 | Layer 2 | Layer 3 | Loss Final Step | Accuracy | Execution Time (s) |
 |--------:|--------:|--------:|----------------:|---------:|-------------------:|
@@ -166,3 +179,41 @@ TensorBoard can be used in order to visualize the graph, or the learning process
 |      80 |      80 |      80 |        0.384293 |    0.957 |             454.97 |
 |      90 |      90 |      90 |        0.498106 |    0.961 |            450.457 |
 |     100 |     100 |     100 |        0.929079 |    0.961 |            463.845 |
+
+#### Random Forest
+
+| Max Depth | Accuracy | Execution Time (s) |
+|----------:|---------:|-------------------:|
+|         0 |          |                    |
+|         1 |   0.1823 |              8.125 |
+|         2 |   0.3179 |              3.739 |
+|         3 |   0.4208 |              3.543 |
+|         4 |   0.5418 |              3.686 |
+|         5 |   0.5744 |              3.719 |
+|         6 |   0.6592 |              3.496 |
+|         7 |   0.6949 |              3.862 |
+|         8 |   0.7436 |              3.377 |
+|         9 |   0.7792 |              3.436 |
+|        10 |     0.81 |              3.793 |
+|        11 |   0.8295 |              3.516 |
+|        12 |   0.8541 |              3.766 |
+|        13 |   0.8887 |              3.558 |
+|        14 |      0.9 |              3.437 |
+|        15 |   0.9182 |              2.882 |
+|        16 |   0.9148 |              3.913 |
+|        17 |   0.9344 |              3.724 |
+|        18 |   0.9259 |              3.765 |
+|        19 |   0.9341 |              3.632 |
+|        20 |     0.93 |              3.223 |
+|        21 |   0.9326 |              3.219 |
+|        22 |   0.9303 |              3.494 |
+|        23 |   0.9382 |              3.115 |
+|        24 |   0.9318 |              3.121 |
+|        25 |   0.9318 |              3.121 |
+|        26 |   0.9354 |              2.689 |
+|        27 |   0.9354 |              3.516 |
+|        28 |   0.9366 |              3.713 |
+|        29 |   0.9349 |              5.051 |
+|        30 |   0.9354 |              3.657 |
+|        40 |   0.9354 |               3.61 |
+| > ou None |   0.9354 |                --- |
