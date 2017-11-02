@@ -62,13 +62,13 @@ def main(_):
     classifier = tf.estimator.DNNClassifier(
       		hidden_units=HIDDEN_UNITS,
 	      	feature_columns=feature_cols,
-		 	    model_dir="/tmp/letter-recognition",
+		 	    model_dir="/tmp/letter-recognition-dnn",
 			     n_classes=26,
 			     label_vocabulary=LABEL_VOCABULARY)
                  # activation_fn=tf.nn.tanh)
 
-    train_writer = tf.summary.FileWriter("/tmp/letter-recognition/train", sess.graph)
-    test_writer = tf.summary.FileWriter("/tmp/letter-recognition/test")
+    train_writer = tf.summary.FileWriter("/tmp/letter-recognition-dnn/train", sess.graph)
+    test_writer = tf.summary.FileWriter("/tmp/letter-recognition-dnn/test")
     tf.global_variables_initializer().run()
 
 	# Train model
