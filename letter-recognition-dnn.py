@@ -1,5 +1,6 @@
 """
-    Program
+    Deep Neural Network model applied to the Letter Recognition Dataset
+    (using TensorFlow)
 """
 from __future__ import absolute_import
 from __future__ import division

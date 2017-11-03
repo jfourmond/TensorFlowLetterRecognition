@@ -50,10 +50,18 @@ The model is saved in the directory "*/tmp/letter-recognition*".
 ### Random Forest Model
 
 Random Forest :
-```$> python letter-recognition-rf.py```
+```$> python letter-recognition-rf.py (--n_trees=10) (--max_depth=20) (--random_state=0)```
+
+The Random Forest model has the following optional configurable caracteristics :
+- n_estimators : the number of trees in the forest
+- max_depth : the maximum depth of the tree
+- random_state : the seed used by the random number generator
 
 ```python
-clf = RandomForestClassifier(max_depth=30, random_state=0)
+clf = RandomForestClassifier(
+        n_estimators=FLAGS.n_trees,
+        max_depth=FLAGS.max_depth,
+        random_state=FLAGS.random_state)
 ```
 
 ### Visualisation
@@ -71,6 +79,8 @@ TensorBoard can be used in order to visualize the graph, or the learning process
 - RAM : 4 Go
 
 #### Deep Neural Network
+
+The execution time is not well computed.
 
 ##### Accuracy with one layer
 
@@ -182,38 +192,33 @@ TensorBoard can be used in order to visualize the graph, or the learning process
 
 #### Random Forest
 
-| Max Depth | Accuracy | Execution Time (s) |
-|----------:|---------:|-------------------:|
-|         0 |          |                    |
-|         1 |   0.1823 |              8.125 |
-|         2 |   0.3179 |              3.739 |
-|         3 |   0.4208 |              3.543 |
-|         4 |   0.5418 |              3.686 |
-|         5 |   0.5744 |              3.719 |
-|         6 |   0.6592 |              3.496 |
-|         7 |   0.6949 |              3.862 |
-|         8 |   0.7436 |              3.377 |
-|         9 |   0.7792 |              3.436 |
-|        10 |     0.81 |              3.793 |
-|        11 |   0.8295 |              3.516 |
-|        12 |   0.8541 |              3.766 |
-|        13 |   0.8887 |              3.558 |
-|        14 |      0.9 |              3.437 |
-|        15 |   0.9182 |              2.882 |
-|        16 |   0.9148 |              3.913 |
-|        17 |   0.9344 |              3.724 |
-|        18 |   0.9259 |              3.765 |
-|        19 |   0.9341 |              3.632 |
-|        20 |     0.93 |              3.223 |
-|        21 |   0.9326 |              3.219 |
-|        22 |   0.9303 |              3.494 |
-|        23 |   0.9382 |              3.115 |
-|        24 |   0.9318 |              3.121 |
-|        25 |   0.9318 |              3.121 |
-|        26 |   0.9354 |              2.689 |
-|        27 |   0.9354 |              3.516 |
-|        28 |   0.9366 |              3.713 |
-|        29 |   0.9349 |              5.051 |
-|        30 |   0.9354 |              3.657 |
-|        40 |   0.9354 |               3.61 |
-| > ou None |   0.9354 |                --- |
+Results from the Random Forest model, with no maximum depth (nodes are expanded until all leaves are pure...) :
+
+```$> python letter-recognition-rf.py --n_trees=x --random_state=0```
+
+| Number of Trees | Accuracy | Execution Time (s) |
+|----------------:|---------:|-------------------:|
+|               1 |   0.8144 |              0.183 |
+|               2 |    0.809 |              0.204 |
+|               3 |   0.8666 |              0.232 |
+|               4 |   0.8905 |              0.465 |
+|               5 |   0.9069 |              0.334 |
+|              10 |   0.9354 |              0.559 |
+|              15 |   0.9464 |              1.029 |
+|              20 |    0.952 |               0.94 |
+|              25 |   0.9544 |              1.163 |
+|              30 |   0.9561 |              1.822 |
+|              40 |    0.959 |              2.184 |
+|              50 |   0.9603 |              3.011 |
+|              60 |   0.9618 |              3.060 |
+|              70 |   0.9621 |              3.886 |
+|              80 |   0.9628 |              3.206 |
+|              90 |   0.9628 |               5.14 |
+|             100 |   0.9631 |              4.992 |
+|             125 |   0.9636 |              6.436 |
+|             150 |   0.9646 |              6.002 |
+|             175 |   0.9654 |              8.164 |
+|             200 |   0.9649 |               10.1 |
+|             250 |   0.9644 |             10.267 |
+|             300 |   0.9646 |             11.278 |
+|             350 |   0.9646 |             13.622 |
