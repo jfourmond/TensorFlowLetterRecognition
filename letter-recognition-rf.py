@@ -1,5 +1,6 @@
 """
-    Program
+    Random Forest model applied to the Letter Recognition Dataset
+    (Using scikit-learn)
 """
 from __future__ import absolute_import
 from __future__ import division
@@ -7,12 +8,14 @@ from __future__ import print_function
 
 import argparse
 import sys
+import time
 
 import pandas as pd
 
 from sklearn import preprocessing
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
+from sklearn.metrics import accuracy_score
 
 # Defining column names for the data set
 COLUMNS = ["lettr", "x-bos", "y-box", "width", "high", "onpic", "x-bar", "y-bar",
@@ -33,7 +36,9 @@ def main(argv):
     """
 		Main
     """
-    print(FLAGS.max_depth)
+    print("NUMBER OF TREE : {}".format(FLAGS.n_trees))
+    print("MAX DEPTH : {}".format(FLAGS.max_depth))
+    print("SEED : {}".format(FLAGS.random_state))
     training_set = pd.read_csv("letter-recognition-training.csv", skipinitialspace=True,
 		                             skiprows=0, names=COLUMNS)
     test_set = pd.read_csv("letter-recognition-test.csv", skipinitialspace=True,
@@ -52,7 +57,10 @@ def main(argv):
     # print(prediction_set)
     # print(prediction_set.as_matrix())
 
-    clf = RandomForestClassifier(max_depth=FLAGS.max_depth, random_state=0)
+    clf = RandomForestClassifier(
+        n_estimators=FLAGS.n_trees,
+        max_depth=FLAGS.max_depth,
+        random_state=FLAGS.random_state)
 
     clf.fit(X, y)
     # print(clf.feature_importances_)
@@ -62,27 +70,42 @@ def main(argv):
     X = test_set[FEATURES].values
 
     score = clf.score(X, y)
-    cv_acc = cross_val_score(clf, X, y)
 
     print("Score : {}".format(score))
-    print(cv_acc)
 
     # Prediction
     y = prediction_set[LABEL].values
     X = prediction_set[FEATURES].values
 
     y_p = clf.predict(X)
+    s_p = accuracy_score(y, y_p)
 
     print("TARGETS : {}".format(LB.inverse_transform(y)))
     print("PREDICTED : {}".format(LB.inverse_transform(y_p)))
+    print("ACCURACY PREDICTION : {}".format(s_p))
 
 if __name__ == "__main__":
+    start = time.time()
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--max_depth',
         type=int,
         default=None,
-        help='Maximum Depth of the Forest'
+        help='Maximum Depth of the tree'
+    )
+    parser.add_argument(
+        '--n_trees',
+        type=int,
+        default=10,
+        help='Number of trees in the forest'
+    )
+    parser.add_argument(
+        '--random_state',
+        type=int,
+        default=None,
+        help="Seed used by the random number generator"
     )
     FLAGS, unparsed = parser.parse_known_args()
     main(argv=[sys.argv[0]] + unparsed)
+    end = time.time() - start
+    print("Execution time :  %.4f seconds" % (end))
