@@ -6,6 +6,11 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import argparse
+import shutil
+import sys
+import time
+
 import pandas as pd
 import tensorflow as tf
 
@@ -22,7 +27,7 @@ LABEL = "lettr"
 LABEL_VOCABULARY = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
                     "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
 
-HIDDEN_UNITS = [100, 100]
+FLAGS = None
 
 def get_input_fn(data_set, num_epochs=None, shuffle=True):
     """
@@ -48,6 +53,21 @@ def main(_):
     """
 		Main
     """
+    start = time.time()
+
+    print("HIDDEN UNITS : {}".format(FLAGS.hidden_units))
+    print("MODEL DIR : {}".format(FLAGS.model_dir))
+    print("STEPS : {}".format(FLAGS.n_steps))
+
+    print("RESULTS FILE : {}".format(FLAGS.results_file))
+
+    HIDDEN_UNITS = FLAGS.hidden_units
+    MODEL_DIR = FLAGS.model_dir
+
+    N_STEPS = FLAGS.n_steps
+
+    RESULTS_FILE = FLAGS.results_file
+
     training_set = pd.read_csv("letter-recognition-training.csv", skipinitialspace=True,
 		                             skiprows=0, names=COLUMNS)
     test_set = pd.read_csv("letter-recognition-test.csv", skipinitialspace=True,
@@ -63,7 +83,7 @@ def main(_):
     classifier = tf.estimator.DNNClassifier(
       		hidden_units=HIDDEN_UNITS,
 	      	feature_columns=feature_cols,
-		 	    model_dir="/tmp/letter-recognition-dnn",
+		 	    model_dir=MODEL_DIR,
 			     n_classes=26,
 			     label_vocabulary=LABEL_VOCABULARY)
                  # activation_fn=tf.nn.tanh)
@@ -73,14 +93,21 @@ def main(_):
     tf.global_variables_initializer().run()
 
 	# Train model
-    classifier.train(input_fn=get_input_fn(training_set), steps=50000)
+    classifier.train(input_fn=get_input_fn(training_set), steps=N_STEPS)
 	# Test model
-    accuracy = classifier.evaluate(
+    metrics = classifier.evaluate(
 		      input_fn=get_input_fn(
 			                       test_set,
                           num_epochs=1,
-                          shuffle=False))["accuracy"]
+                          shuffle=False))
+
+    accuracy = metrics["accuracy"]
+    average_loss = metrics["average_loss"]
+    loss = metrics["loss"]
+    global_step = metrics["global_step"]
+
     print("\nTest Accuracy: {0:f}\n".format(accuracy))
+    
 	# Predict model
     predictions = classifier.predict(
 		      input_fn=get_input_fn(
@@ -90,8 +117,46 @@ def main(_):
     predicted_classes = [p["classes"] for p in predictions]
     print("New Samples, Class Predictions:    {}\n".format(predicted_classes))
 
+    end = time.time() - start
+    print("Execution time :  {:.4f} seconds\n".format(end))
+
+    if RESULTS_FILE:
+        resultsFile = open(RESULTS_FILE, "a")
+        # Layer 1, ..., Layer N,  Accuracy, Time
+        for l in HIDDEN_UNITS:
+            resultsFile.write("{}, ".format(l))
+        resultsFile.write("{}, {}\n".format(accuracy, end))
+        resultsFile.close
+
     train_writer.close()
     test_writer.close()
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--model_dir',
+        type=str,
+        default="/tmp/letter-recognition-dnn",
+        help='Directory where model will be stored'
+    )
+    parser.add_argument(
+        '--n_steps',
+        type=int,
+        default=10000,
+        help='Number of steps for which to train model'
+    )
+    parser.add_argument(
+        '--results_file',
+        type=str,
+        default=None,                        #"letter-recognition-dnn.csv"
+        help='File where results will be stored'
+    )
+    parser.add_argument(
+        '--hidden_units',
+        nargs='*',
+        type=int,
+        default=[16, 16, 16],
+        help='Iterable of number hidden units per layer'
+    )
+    FLAGS, unparsed = parser.parse_known_args()
     tf.app.run()
