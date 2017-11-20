@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Visualisation</title>
+        <style>
+            .axis .domain {
+                display: none;
+            }
+
+            .axis line {
+                stroke: rgb(155, 155, 155);
+                stroke-opacity: 0.3;
+            }
+        </style>
+    </head>
+    <body>
+        <svg></svg>
+        <script src="https://d3js.org/d3.v4.min.js"></script>
+        <script>
+            const file = "../letter-recognition-rf.csv";
+
+            const widthSVG = window.innerWidth;
+			const heightSVG = window.innerHeight - 100;
+
+            const svg = d3.select("svg")
+                        .attr("width", widthSVG)
+                        .attr("height", heightSVG)
+
+            const margin = {top: 50, right: 50, bottom: 40, left: 50},
+                  width = +svg.attr("width") - margin.left - margin.right,
+                  height = +svg.attr("height") - margin.top - margin.bottom,
+                  g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            // Axe X
+            const x = d3.scaleLinear()
+                .rangeRound([0, width])
+                .domain([0, 50]);
+            // Axe Y
+            const y = d3.scaleLinear()
+                .rangeRound([height, 0])
+                .domain([0.75, 1]);
+
+            const line = d3.line()
+                .x(function(d) { return x(d.x); })
+                .y(function(d) { return y(d.y); })
+                .curve(d3.curveBasis);
+            
+            g.append("g")
+                .attr("class", "axis")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x));
+
+            // Text label for the X Axis
+            svg.append("text")             
+                .attr("transform", "translate(" + (widthSVG/2) + " ," + 
+                           (heightSVG) + ")")
+                .style("text-anchor", "middle")
+                .style("font", "16px sans-serif")
+                .style("font-weight", "bold")
+                .text("Tree Numbers");
+
+            g.append("g")
+                .attr("class", "axis")
+                .call(d3.axisLeft(y).ticks(null, "s").tickSize(-width)
+                        .tickFormat(function(d) { 
+                            return d;
+                        }));
+
+            // Text label for the Y Axis     
+            svg.append("text")
+               .attr("transform", "rotate(-90)")
+               .attr("y", 0 + 15)
+               .attr("x", 0 - (heightSVG / 2))
+               .style("text-anchor", "middle")
+               .style("font", "16px sans-serif")
+               .style("font-weight", "bold")
+               .text("Accuracy");    
+            
+            svg.append("text")
+               .attr("x", widthSVG/2)
+               .attr("y", 0 + (margin.top / 2))
+               .attr("text-anchor", "middle")
+               .style("font", "20px sans-serif")
+               .style("font-weight", "bold")
+               .style("text-decoration", "underline")  
+               .text("Random Forest Evolution");
+
+            const mark = g.append("g")
+                          .attr("class", "mark")
+                          .style("opacity", "0");
+            mark.append("circle").attr("r", 7)
+                             .style("fill", "none")
+                             .style("stroke-width", "1.5px");
+            mark.append("text")
+                .attr("x", 10)
+                .attr("y", -10)
+                .style("font", "10px sans-serif")
+                .attr("dy", "0.35em")
+                .text("");
+
+            /**
+             *   FORMAT DES DONNEES VOULU : 
+             *      { values: [{x:x, y:y}, ... ]}
+            **/
+            const data = [];
+            
+            d3.queue()
+              .defer(d3.text, file)
+              .await(process);
+
+            function process(error, text) {
+                if(error) throw error;
+
+                let arrays = d3.csvParseRows(text, function(d) {
+                    return d.map(Number);
+                });
+
+                for(let array of arrays)
+                    if(array[0] > 0 && array[0] <= 50)
+                        data.push({x: array[0], y:array[1]});
+                
+                console.log("DATA : %O", data);
+
+                draw();
+            }
+
+            function draw() {
+                let totalLength = x(105);  
+
+                const path = g.append("path")
+                    .datum(data)
+                    .attr("class", "line")
+                    .attr("fill", "none")
+                    .attr("stroke", "blue")
+                    .attr("stroke-linejoin", "round")
+                    .attr("stroke-linecap", "round")
+                    .attr("stroke-width", 2)
+                    .attr("d", line)
+                    .on("mouseover", function(d, i) {
+                        mark.style("opacity", "1");
+                    })
+                    .on("mousemove", function(d, i) {
+                        const mouse = d3.mouse(this);
+                        const mouseXValue = x.invert(mouse[0]);
+                        const xValue = Math.round(mouseXValue);
+                        const value = d[xValue-1];
+
+                        mark.attr("transform", "translate(" + mouse[0] + ", " + mouse[1] + ")");
+
+                        mark.selectAll("circle").style("stroke", "blue");
+                        mark.selectAll("text").style("fill", "blue")
+                            .text("(" + value.x + " , " + value.y.toFixed(3) + ")");
+                    })
+                    .attr("stroke-dasharray", totalLength + " " + totalLength)
+                    .attr("stroke-dashoffset", totalLength)
+                    .transition().duration(3000)
+                        .ease(d3.easeCubic)
+                        .attr('stroke-dashoffset', 0);
+            }
+        </script>
+    </body>
+</html>
