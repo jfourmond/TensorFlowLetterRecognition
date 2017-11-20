@@ -1,6 +1,6 @@
 # Letter Recognition
 
-Python Deep Learning on the "Letter Image Recognition Data" with TensorFlow
+Python Deep Learning on the "[Letter Image Recognition Data](https://archive.ics.uci.edu/ml/machine-learning-databases/letter-recognition/)" with TensorFlow
 
 ---
 
@@ -22,35 +22,40 @@ The original dataset has been divided in 3 parts : the training dataset, the tes
 
 ## Models
 
-The model is trained on the ***16000*** examples of the [letter-recognition-training.csv](https://github.com/jfourmond/TensorFlowLetterRecognition/blob/master/letter-recognition-training.csv) file, evaluated on the ***3900*** examples of the [letter-recognition-test.csv](https://github.com/jfourmond/TensorFlowLetterRecognition/blob/master/letter-recognition-test.csv) file, and finally predictions are made on the 100 ***examples*** of the [letter-recognition-eval.csv](https://github.com/jfourmond/TensorFlowLetterRecognition/blob/master/letter-recognition-eval.csv) file.
+The model is trained on the ***16000*** examples of the [letter-recognition-training.csv](https://github.com/jfourmond/TensorFlowLetterRecognition/blob/master/letter-recognition-training.csv) file, evaluated on the ***3900*** examples of the [letter-recognition-test.csv](https://github.com/jfourmond/TensorFlowLetterRecognition/blob/master/letter-recognition-test.csv) file, and finally predictions are made on the 100 ***examples*** of the [letter-recognition-eval.csv](https://github.com/jfourmond/TensorFlowLetterRecognition/blob/master/letter-recognition-eval.csv) file as a demonstration of the model.
 
 ### Deep Learning Model
 
-Deep Neural Network : 
-```$> python letter-recognition-dnn.py```
+> ` letter-recognition-dnn.py [-h] [--model_dir MODEL_DIR] [--n_steps N_STEPS] [--results_file RESULTS_FILE] [--hidden_units [HIDDEN_UNITS [HIDDEN_UNITS ...]]]`
 
-The Deep Neural Network has the following caracteristics :
-- 2 hidden layers, with, for the both, 100 units
-- 26 output neurons (number of classes)
-- Optimizer algorithm : ***Adagrad***
-- Activation function : ***RELU***
-- Learning rate : *0.1*
+> `$> python letter-recognition-dnn.py --hidden_units 8 8 8`
+
+The Deep Neural Network model has the following optional configurable caracteristics :
+- hidden_units : an array depicted the number of neurons per layer (for example `[10, 20]` means two hidden layers with 10 neurons on the first one, and 20 on the second)
+- model_dir : the directory where the model will be stored
+
+It is possible to edit the activation functions or the optimizer.
 
 ```python
 classifier = tf.estimator.DNNClassifier(
-    	hidden_units=[100, 100],
-	    feature_columns=feature_cols,
-		 	model_dir="/tmp/letter-recognition",
-			 n_classes=26,
-			 label_vocabulary=LABEL_VOCABULARY)
+      		hidden_units=HIDDEN_UNITS,
+	      	feature_columns=feature_cols,
+		 	    model_dir=MODEL_DIR,
+			     n_classes=26,
+			     label_vocabulary=LABEL_VOCABULARY)
 ```
 
-The model is saved in the directory "*/tmp/letter-recognition*".
+In order to configure those settings, the script present several arguments :
+- model_dir : the directory where the model will be stored (default : `/tmp/letter-recognition-dnn`)
+- n_steps : the number of steps for which to train the model (default : `10000`)
+- results_file : File where the results of the model could be stored (default : `None`)
+- hidden_units : the array for the number of hidden units per layer (default : `[16, 16, 16]`)
 
 ### Random Forest Model
 
-Random Forest :
-```$> python letter-recognition-rf.py (--n_trees=10) (--max_depth=20) (--random_state=0)```
+> `$> letter-recognition-rf.py [-h] [--max_depth MAX_DEPTH] [--n_trees N_TREES] [--random_state RANDOM_STATE] [--results_file RESULTS_FILE]`
+
+> `$> python letter-recognition-rf.py --n_trees=10 --random_state=0`
 
 The Random Forest model has the following optional configurable caracteristics :
 - n_estimators : the number of trees in the forest
@@ -59,10 +64,16 @@ The Random Forest model has the following optional configurable caracteristics :
 
 ```python
 clf = RandomForestClassifier(
-        n_estimators=FLAGS.n_trees,
-        max_depth=FLAGS.max_depth,
-        random_state=FLAGS.random_state)
+        n_estimators=N_TREES,
+        max_depth=MAX_DEPTH,
+        random_state=RANDOM_STATE)
 ```
+
+In order to configure those settings, the script present several arguments :
+- max_depth : the maximum depth of the tree (default : `None`)
+- n_trees : the number of trees in the forest (default : `10`)
+- random_state : the seed used by the random number generator (default : `None`)
+- results_file : File where the results of the model could be stored (default : `None`)
 
 ### Visualisation
 
@@ -193,6 +204,8 @@ The execution time is not well computed.
 #### Random Forest
 
 Results from the Random Forest model, with no maximum depth (nodes are expanded until all leaves are pure...) :
+
+
 
 ```$> python letter-recognition-rf.py --n_trees=x --random_state=0```
 
