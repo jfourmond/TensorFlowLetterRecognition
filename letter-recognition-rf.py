@@ -36,9 +36,20 @@ def main(argv):
     """
 		Main
     """
+    start = time.time()
+
     print("NUMBER OF TREE : {}".format(FLAGS.n_trees))
     print("MAX DEPTH : {}".format(FLAGS.max_depth))
     print("SEED : {}".format(FLAGS.random_state))
+
+    print("RESULTS FILE : {}".format(FLAGS.results_file))
+
+    N_TREES = FLAGS.n_trees
+    MAX_DEPTH = FLAGS.max_depth
+    RANDOM_STATE = FLAGS.random_state
+
+    RESULTS_FILE = FLAGS.results_file
+
     training_set = pd.read_csv("letter-recognition-training.csv", skipinitialspace=True,
 		                             skiprows=0, names=COLUMNS)
     test_set = pd.read_csv("letter-recognition-test.csv", skipinitialspace=True,
@@ -54,16 +65,12 @@ def main(argv):
     y = training_set[LABEL].values
     X = training_set[FEATURES].values
 
-    # print(prediction_set)
-    # print(prediction_set.as_matrix())
-
     clf = RandomForestClassifier(
-        n_estimators=FLAGS.n_trees,
-        max_depth=FLAGS.max_depth,
-        random_state=FLAGS.random_state)
+        n_estimators=N_TREES,
+        max_depth=MAX_DEPTH,
+        random_state=RANDOM_STATE)
 
     clf.fit(X, y)
-    # print(clf.feature_importances_)
 
     # Evaluation
     y = test_set[LABEL].values
@@ -84,8 +91,16 @@ def main(argv):
     print("PREDICTED : {}".format(LB.inverse_transform(y_p)))
     print("ACCURACY PREDICTION : {}".format(s_p))
 
+    end = time.time() - start
+    print("Execution time :  {:.4f} seconds\n\n".format(end))
+
+    if RESULTS_FILE:
+        resultsFile = open(RESULTS_FILE, "a")
+        # n_trees, Accuracy, Time
+        resultsFile.write("{}, {}, {}\n".format(N_TREES, score, end))
+        resultsFile.close
+
 if __name__ == "__main__":
-    start = time.time()
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--max_depth',
@@ -105,7 +120,11 @@ if __name__ == "__main__":
         default=None,
         help="Seed used by the random number generator"
     )
+    parser.add_argument(
+        '--results_file',
+        type=str,
+        default=None,                        #"letter-recognition-rf.csv"
+        help='File where results will be stored'
+    )
     FLAGS, unparsed = parser.parse_known_args()
     main(argv=[sys.argv[0]] + unparsed)
-    end = time.time() - start
-    print("Execution time :  %.4f seconds" % (end))
