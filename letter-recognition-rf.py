@@ -92,7 +92,8 @@ def main(argv):
     print("ACCURACY PREDICTION : {}".format(s_p))
 
     end = time.time() - start
-    print("Execution time :  {:.4f} seconds\n\n".format(end))
+    minutes, seconds = divmod(end, 60)
+    print("Execution time :  {}m {:.4f}s".format(int(minutes), seconds))
 
     if RESULTS_FILE:
         resultsFile = open(RESULTS_FILE, "a")
