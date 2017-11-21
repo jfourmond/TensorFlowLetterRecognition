@@ -114,11 +114,13 @@ def main(_):
                           prediction_set,
                           num_epochs=1,
                           shuffle=False))
+
     predicted_classes = [p["classes"] for p in predictions]
     print("New Samples, Class Predictions:    {}\n".format(predicted_classes))
 
     end = time.time() - start
-    print("Execution time :  {:.4f} seconds\n".format(end))
+    minutes, seconds = divmod(end, 60)
+    print("Execution time :  {}m {:.4f}s".format(int(minutes), seconds))
 
     if RESULTS_FILE:
         resultsFile = open(RESULTS_FILE, "a")
@@ -156,7 +158,7 @@ if __name__ == "__main__":
         nargs='*',
         type=int,
         default=[16, 16, 16],
-        help='Iterable of number hidden units per layer'
+        help='Iterable of number depicting hidden units per layer'
     )
     FLAGS, unparsed = parser.parse_known_args()
     tf.app.run()
