@@ -99,3 +99,10 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# Training and evaluation data
+data/train/*
+data/test/*
+
+# Settings file for Visual Studio Code
+.vscode
