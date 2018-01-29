@@ -50,11 +50,11 @@ def main(argv):
 
     RESULTS_FILE = FLAGS.results_file
 
-    training_set = pd.read_csv("letter-recognition-training.csv", skipinitialspace=True,
+    training_set = pd.read_csv("data/letter-recognition-training.csv", skipinitialspace=True,
 		                             skiprows=0, names=COLUMNS)
-    test_set = pd.read_csv("letter-recognition-test.csv", skipinitialspace=True,
+    test_set = pd.read_csv("data/letter-recognition-test.csv", skipinitialspace=True,
                            skiprows=0, names=COLUMNS)
-    prediction_set = pd.read_csv("letter-recognition-eval.csv", skipinitialspace=True,
+    prediction_set = pd.read_csv("data/letter-recognition-eval.csv", skipinitialspace=True,
 		                               skiprows=0, names=COLUMNS)
 
     training_set[LABEL] = LB.transform(training_set[LABEL])
