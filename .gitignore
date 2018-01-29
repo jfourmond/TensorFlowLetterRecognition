@@ -100,9 +100,10 @@ ENV/
 # mypy
 .mypy_cache/
 
-# Training and evaluation data
+# Training, evaluation and prediction data
 data/train/*
 data/test/*
+data/predict/
 
 # Settings file for Visual Studio Code
 .vscode
