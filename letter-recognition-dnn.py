@@ -68,7 +68,7 @@ def main(_):
 
     RESULTS_FILE = FLAGS.results_file
 
-    training_set = pd.read_csv("data/letter-recognition-train.csv", skipinitialspace=True,
+    training_set = pd.read_csv("data/letter-recognition-training.csv", skipinitialspace=True,
 		                             skiprows=0, names=COLUMNS)
     test_set = pd.read_csv("data/letter-recognition-test.csv", skipinitialspace=True,
                            skiprows=0, names=COLUMNS)
