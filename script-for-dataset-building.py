@@ -4,6 +4,7 @@
 import os
 import random as rd
 import shutil as sl
+import time
 
 LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q',
            'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
@@ -14,7 +15,7 @@ OUTPUT_TRAIN_DIRECTORY = "data/train/"
 OUTPUT_TEST_DIRECTORY = "data/test/"
 OUTPUT_PREDICT_DIRECTORY = "data/predict/"
 
-TRAIN_PRCT = 0.6 # 60% de données d'entraînement, 40% de données de test
+TRAIN_PRCT = 0.7 # 70% de données d'entraînement, 30% de données de test
 
 def fill_directory(directory, data):
     if os.path.exists(directory):
@@ -29,6 +30,8 @@ def fill_directory(directory, data):
         sl.copy(input_file, output_file)
 
 if __name__ == "__main__":
+    start = time.time()
+
     polices = os.listdir(INPUT_DIRECTORY)
 
     files = []
@@ -49,3 +52,8 @@ if __name__ == "__main__":
     fill_directory(OUTPUT_TEST_DIRECTORY, test_data)
     # Crééation du répertoire "data/predict"
     fill_directory(OUTPUT_PREDICT_DIRECTORY, rd.sample(test_data, 10))
+
+    end = time.time() - start
+    minutes, seconds = divmod(end, 60)
+    print("Temps d'exécution : {}m {:.4f}s".format(int(minutes), seconds))
+
