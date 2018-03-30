@@ -17,12 +17,14 @@ PATH_PREDICT = "data/predict/"
 LABELS_VOCABULARY = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O",
                      "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
 
+FLAGS = None
+
 # Logging activation
 tf.logging.set_verbosity(tf.logging.INFO)
 
 # Encodage des labels
 LB = preprocessing.LabelEncoder()
-LB.fit(LABELS_VOCABULARY)
+LABELS_FITTED = LB.fit(LABELS_VOCABULARY)
 
 Sess = tf.Session()
 
@@ -193,23 +195,41 @@ def cnn_model_fn(features, labels, mode):
 def check_dataset(dataset):
     """Input function"""
     iterator = dataset.make_one_shot_iterator()
-    iterator.get_next()
+    next_element = iterator.get_next()
 
     i = 1
     while True:
         try:
-            value = Sess.run(iterator.get_next())
+            value = Sess.run(next_element)
             if value[0].shape[2] != 3:
                 raise Exception("Wrong format", "{}, n°{}".format(value[1], i))
             i = i+1
         except tf.errors.OutOfRangeError:
             break
 
+
+feature_spec = {'image/encoded': tf.FixedLenFeature(shape=[], dtype=tf.string) }
+
+def serving_input_receiver_fn():
+    """An input receiver that expects a serialized tf.Example."""
+    serialized_tf_example = tf.placeholder(dtype=tf.string, shape=[1], name='input_image')
+    receiver_tensors = {'examples': serialized_tf_example}
+    features = tf.parse_example(serialized_tf_example, feature_spec)
+    return tf.estimator.export.ServingInputReceiver(features, receiver_tensors)
+
 def main(_):
     """
 		Main
     """
-    print("NOMBRE DE PAS : {}".format(FLAGS.n_steps))
+    N_STEPS = FLAGS.n_steps
+    MODEL_DIR = FLAGS.model_dir
+    SHOW_PREDICT = FLAGS.show_predict
+    EXPORT_DIR = FLAGS.export_dir
+
+    print("NOMBRE DE PAS : {}".format(N_STEPS))
+    print("REPERTOIRE DU MODELE : {}".format(MODEL_DIR))
+    print("AFFICHAGE DES PREDICTIONS : {}".format(SHOW_PREDICT))
+    print("REPERTOIRE D'EXPORTATION : {}".format(EXPORT_DIR))
 
     # Lecture des images pour l'apprentissage
     print("Lecture des images pour l'apprentissage...")
@@ -232,7 +252,7 @@ def main(_):
 
     # Construction du réseau de neurones convolutifs
     print("Construction du réseau de neurones convolutifs...")
-    cnn = tf.estimator.Estimator(model_fn=cnn_model_fn, model_dir="/tmp/cnn")
+    cnn = tf.estimator.Estimator(model_fn=cnn_model_fn, model_dir=MODEL_DIR)
     print("FAIT")
 
     tensors_to_log = {"probabilities" : "softmax_tensor"}
@@ -242,7 +262,7 @@ def main(_):
 
     # Entraînement du réseau de neurones convolutifs
     print("Entraînement du réseau de neurones convolutifs...")
-    cnn.train(input_fn=lambda: input_fn(train_dataset, FLAGS.n_steps, True, train_dataset_size),
+    cnn.train(input_fn=lambda: input_fn(train_dataset, N_STEPS, True, train_dataset_size),
               hooks=[logging_hook])
     print("FAIT")
 
@@ -253,10 +273,20 @@ def main(_):
     print("FAIT : {}".format(eval_results))
 
     # Prédiction du réseau de neurones convolutifs
-    if FLAGS.show_predict:
+    if SHOW_PREDICT:
         y = cnn.predict(input_fn=lambda: input_fn(predict_dataset, None, False, predict_dataset_size))
         pred = list(p["classes"] for p in y)
         print("Predictions: {}".format(str(LB.inverse_transform(pred))))
+
+    if EXPORT_DIR:
+        # path = cnn.export_savedmodel(EXPORT_DIR, serving_input_receiver_fn)
+
+        image = tf.placeholder(tf.string, [None, 20, 20, 3])
+        serving_input_fn = tf.estimator.export.build_raw_serving_input_receiver_fn({
+            'image': image,
+        })
+        path = cnn.export_savedmodel(EXPORT_DIR, serving_input_fn)
+        print("Exportation dans le répertoire : {}".format(path))
 
     end = time.time() - start
     minutes, seconds = divmod(end, 60)
@@ -266,15 +296,31 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--n_steps',
+        '-n',
         type=int,
         default=1000,
         help='Number of steps for which to train model'
     )
     parser.add_argument(
+        '--model_dir',
+        '-md',
+        type=str,
+        default='/tmp/cnn',
+        help='Directory where the checkpoint and the model will be stored'
+    )
+    parser.add_argument(
         '--show_predict',
+        '-p',
         type=bool,
         default=False,
         help='Show the prediction'
+    )
+    parser.add_argument(
+        '--export_dir',
+        '-e',
+        type=str,
+        default=None,
+        help='Directory where the model will be exported'
     )
     FLAGS, unparsed = parser.parse_known_args()
     tf.app.run()
