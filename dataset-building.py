@@ -13,7 +13,7 @@ INPUT_DIRECTORY = "data/letter-recognition/"
 
 OUTPUT_TRAIN_DIRECTORY = "data/train/"
 OUTPUT_TEST_DIRECTORY = "data/test/"
-OUTPUT_PREDICT_DIRECTORY = "data/predict/"
+# OUTPUT_PREDICT_DIRECTORY = "data/predict/"
 
 TRAIN_PRCT = 0.7 # 70% de données d'entraînement, 30% de données de test
 
@@ -50,8 +50,8 @@ if __name__ == "__main__":
     fill_directory(OUTPUT_TRAIN_DIRECTORY, train_data)
     # Création du répertoire "data/test/"
     fill_directory(OUTPUT_TEST_DIRECTORY, test_data)
-    # Crééation du répertoire "data/predict"
-    fill_directory(OUTPUT_PREDICT_DIRECTORY, rd.sample(test_data, 10))
+    # Création du répertoire "data/predict"
+    # fill_directory(OUTPUT_PREDICT_DIRECTORY, rd.sample(test_data, 10))
 
     end = time.time() - start
     minutes, seconds = divmod(end, 60)
