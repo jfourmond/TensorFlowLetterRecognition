@@ -28,9 +28,9 @@ LB.fit(LABELS_VOCABULARY)
 
 Sess = tf.Session()
 
-def parse(filename, label):
+def distorted_parse(filename, label):
     """
-        Lecture de l'image du fichier
+        Lecture et déformation de l'image du fichier
     """
     image_string = tf.read_file(filename)
     image_decoded = tf.image.decode_image(image_string)
@@ -46,20 +46,31 @@ def parse(filename, label):
     # Because these operations are not commutative, consider randomizing
     # the order their operation.
     distorted_image = tf.image.random_brightness(distorted_image, max_delta=63)
-    distorted_image = tf.image.random_contrast(distorted_image, lower=0.2,
-                                                upper=1.8)
+    distorted_image = tf.image.random_contrast(distorted_image, lower=0.2, upper=1.8)
 
     return distorted_image, label
 
-def fetch_train_dataset():
-    """ Création du jeu de données d'apprentissage"""
+def parse(filename, label):
+    """
+        Lecture (sans déformation) de l'image du fichier
+    """
+    image_string = tf.read_file(filename)
+    image_decoded = tf.image.decode_image(image_string)
+    image_decoded = tf.cast(image_decoded, tf.float32)
+
+    return image_decoded, label
+
+def fetch_dataset(data_dir, distorted=False):
+    """
+        Lecture des images du dataset
+    """
     filenames = []
     labels = []
 
     for LABEL in LABELS_VOCABULARY:
-        if os.access(PATH_TRAIN + LABEL, os.F_OK):
-            for elem in os.listdir(PATH_TRAIN + LABEL):
-                filenames.append(PATH_TRAIN + LABEL + "/" + elem)
+        if os.access(data_dir + LABEL, os.F_OK):
+            for elem in os.listdir(data_dir + LABEL):
+                filenames.append(data_dir + LABEL + "/" + elem)
                 labels.append(LABEL)
 
     size = len(filenames)
@@ -70,53 +81,10 @@ def fetch_train_dataset():
     labels = tf.constant(labels)
 
     dataset = tf.data.Dataset.from_tensor_slices((filenames, labels))
-    dataset = dataset.map(parse)
-
-    return dataset, size
-
-def fetch_test_dataset():
-    """ Création du jeu de données d'évaluation"""
-    filenames = []
-    labels = []
-
-    for LABEL in LABELS_VOCABULARY:
-        if os.access(PATH_TEST + LABEL, os.F_OK):
-            for elem in os.listdir(PATH_TEST + LABEL):
-                filenames.append(PATH_TEST + LABEL + "/" + elem)
-                labels.append(LABEL)
-
-    size = len(filenames)
-
-    filenames = tf.constant(filenames)
-
-    labels = LB.transform(labels)
-    labels = tf.constant(labels)
-
-    dataset = tf.data.Dataset.from_tensor_slices((filenames, labels))
-    dataset = dataset.map(parse)
-
-    return dataset, size
-
-def fetch_predict_dataset():
-    """ Création du jeu de données de prédiction"""
-    filenames = []
-    labels = []
-
-    for LABEL in LABELS_VOCABULARY:
-        if os.access(PATH_PREDICT + LABEL, os.F_OK):
-            for elem in os.listdir(PATH_PREDICT + LABEL):
-                filenames.append(PATH_PREDICT + LABEL + "/" + elem)
-                labels.append(LABEL)
-
-    size = len(filenames)
-
-    filenames = tf.constant(filenames)
-
-    labels = LB.transform(labels)
-    labels = tf.constant(labels)
-
-    dataset = tf.data.Dataset.from_tensor_slices((filenames, labels))
-    dataset = dataset.map(parse)
+    if distorted:
+        dataset = dataset.map(distorted_parse)
+    else:
+        dataset = dataset.map(parse)
 
     return dataset, size
 
@@ -214,6 +182,10 @@ def check_dataset(dataset):
     while True:
         try:
             value = Sess.run(next_element)
+            if value[0].shape[0] != 20:
+                raise Exception("Wrong format", "{}, n°{}".format(value[1], i))
+            if value[0].shape[1] != 20:
+                raise Exception("Wrong format", "{}, n°{}".format(value[1], i))
             if value[0].shape[2] != 3:
                 raise Exception("Wrong format", "{}, n°{}".format(value[1], i))
             i = i+1
@@ -227,29 +199,27 @@ def main(_):
     N_STEPS = FLAGS.n_steps
     MODEL_DIR = FLAGS.model_dir
     SHOW_PREDICT = FLAGS.show_predict
-    EXPORT_DIR = FLAGS.export_dir
 
     print("NOMBRE DE PAS : {}".format(N_STEPS))
     print("REPERTOIRE DU MODELE : {}".format(MODEL_DIR))
     print("AFFICHAGE DES PREDICTIONS : {}".format(SHOW_PREDICT))
-    print("REPERTOIRE D'EXPORTATION : {}".format(EXPORT_DIR))
 
     # Lecture des images pour l'apprentissage
     print("Lecture des images pour l'apprentissage...")
-    train_dataset, train_dataset_size = fetch_train_dataset()
+    train_dataset, train_dataset_size = fetch_dataset(PATH_TRAIN, True)
     check_dataset(train_dataset)
     print("FAIT : {} IMAGES".format(train_dataset_size))
 
     # Lecture des images pour l'évaluation
     print("Lecture des images pour l'évaluation...")
-    test_dataset, test_dataset_size = fetch_test_dataset()
+    test_dataset, test_dataset_size = fetch_dataset(PATH_TEST)
     check_dataset(test_dataset)
     print("FAIT : {} IMAGES".format(test_dataset_size))
 
     # Lecture des images pour la prédiction
     if FLAGS.show_predict:
         print("Lecture des images pour la prédiction...")
-        predict_dataset, predict_dataset_size = fetch_predict_dataset()
+        predict_dataset, predict_dataset_size = fetch_dataset(PATH_PREDICT)
         check_dataset(predict_dataset)
         print("FAIT : {} IMAGES".format(predict_dataset_size))
 
@@ -307,13 +277,6 @@ if __name__ == "__main__":
         type=bool,
         default=False,
         help='Show the prediction'
-    )
-    parser.add_argument(
-        '--export_dir',
-        '-e',
-        type=str,
-        default=None,
-        help='Directory where the model will be exported'
     )
     FLAGS, unparsed = parser.parse_known_args()
     tf.app.run()
