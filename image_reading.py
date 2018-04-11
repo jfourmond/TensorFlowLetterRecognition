@@ -4,13 +4,13 @@ from sklearn import preprocessing
 
 import argparse
 import cv2
-
-SELECTION = (20, 20)
+import pyttsx3
+import _thread
 
 MOVEMENT = 2
 
 ARROWS = { 2490368:'up', 2555904:'right', 2621440:'down', 2424832:'left' }
-
+PAGE = { 2162688:'up', 2228224:'down' }
 ENTER_KEY = 13
 
 FLAGS = None
@@ -103,10 +103,11 @@ def input_fn(dataset):
 def predict(cnn, section):
     if(section.size > 0):
         section = tf.cast(section, tf.float32)
+        section = tf.image.resize_images(section, [20, 20])
         dataset = tf.data.Dataset.from_tensor_slices(([section], [0]))
         y = cnn.predict(input_fn=lambda: input_fn(dataset))
         pred = list(p["classes"] for p in y)
-        print("Predictions: {}".format(str(LB.inverse_transform(pred))))
+        return LB.inverse_transform(pred)[0]
 
 def move_section(top_left, bottom_right, direction, shape_image):
     if direction == "left":
@@ -126,23 +127,42 @@ def move_section(top_left, bottom_right, direction, shape_image):
             return (top_left, bottom_right)
         return ((top_left[0], top_left[1] + MOVEMENT), (bottom_right[0], bottom_right[1] + MOVEMENT))
 
+def change_selection(selection, change):
+    if change == "up":
+        return selection + 1
+    elif change == "down":
+        return selection - 1
+
 def draw_section(original_img, top_left, bottom_right):
     return cv2.rectangle(original_img, top_left, bottom_right, (0,255,0), 1)
 
 def get_section(original_img, top_left, bottom_right):
     return original_img[top_left[1]:bottom_right[1],top_left[0]:bottom_right[0]]
 
+def speak(engine, label):
+    engine.say(label)
+    engine.runAndWait()
+
 def main():
     PATH_MODEL = FLAGS.model_dir
     PATH_IMAGE = FLAGS.path_to_image
-    # Construction du réseau de neurones
+
+    SHOW_INPUT = FLAGS.show_input
+    SYNTHESIS_OUTPUT = FLAGS.synthesis
+
+    SELECTION = 20
+    engine = None
+    
+    if SYNTHESIS_OUTPUT:
+        engine = pyttsx3.init()
+
     # Construction du réseau de neurones convolutifs
     print("Construction du réseau de neurones convolutifs...")
     cnn = tf.estimator.Estimator(model_fn=cnn_model_fn, model_dir=PATH_MODEL)
     print("FAIT")
 
     top_left = (0, 0)
-    bottom_right = (top_left[0] + SELECTION[0], top_left[1] + SELECTION[1])
+    bottom_right = (top_left[0] + SELECTION, top_left[1] + SELECTION)
     # Lecture de l'image
     original_img = cv2.imread(PATH_IMAGE)
     shape_image = original_img.shape
@@ -154,17 +174,29 @@ def main():
     section = get_section(original_img, top_left, bottom_right)
     # Affichage de l'image & de la sélection
     cv2.imshow('image', img) 
-    cv2.imshow('section', section)
+    if SHOW_INPUT:
+        cv2.imshow('section', section)
 
     while(1):
         key = cv2.waitKeyEx()
         direction = None
+        change = None
+        label = None
         # Calcul du déplacement de la section
         direction = ARROWS.get(key)
+        # Calcul de la tqaille de la section
+        change = PAGE.get(key)
         if not direction is None:
             top_left, bottom_right = move_section(top_left, bottom_right, direction, shape_image)
         if key == ENTER_KEY:
-            predict(cnn, get_section(original_img, top_left, bottom_right))
+            label = predict(cnn, get_section(original_img, top_left, bottom_right))
+            print(label)
+            if SYNTHESIS_OUTPUT:
+                # speak(engine, label)
+                _thread.start_new_thread( speak, (engine, label) )
+        if not change is None:
+            SELECTION = change_selection(SELECTION, change)
+            bottom_right = (top_left[0] + SELECTION, top_left[1] + SELECTION)
         if key == 113:
             break
         # Ajout du rectangle à l'image
@@ -173,8 +205,8 @@ def main():
         section = get_section(original_img, top_left, bottom_right)
         # Affichage de l'image & de la section
         cv2.imshow('image', img)
-        cv2.imshow('section', section)
-        # TODO Récupération de la section et prédire la valeur
+        if SHOW_INPUT:
+            cv2.imshow('section', section)
 
     cv2.destroyAllWindows()
 
@@ -189,6 +221,18 @@ if __name__ == "__main__":
         'path_to_image',
         type=str,
         help='Path to the image which will be loaded'
+    )
+    parser.add_argument(
+        '--show_input',
+        type=bool,
+        default=False,
+        help='Whether or not to show the input to the neural network'
+    )
+    parser.add_argument(
+        '--synthesis',
+        type=bool,
+        default=False,
+        help='Whether or not to vocal synthesis the output of the neural network'
     )
     FLAGS, unparsed = parser.parse_known_args()
     main()
