@@ -2,9 +2,13 @@
     data-creation.py : 
         Créer une multitude d'images à partir des polices disponibles sur la
         machine (dans le répertoire "C:\\Windows\\Fonts"), qui seront stockées
-        dans le répertoire : data/letter-recognition/
+        dans le répertoire : data/letter-recognition/.
+
+        Les polices dans le fichier json 'data/excluded-fonts.json' seront
+        exclues du traitement.
 """
 import argparse
+import json
 import numpy as np
 import os
 from PIL import Image, ImageDraw, ImageFont
@@ -16,17 +20,18 @@ FLAGS = None
 SIZE = (20, 20)
 LETTER_POS = (3, 0)
 
-EXCLUDED_FONTS = [
-    "BSSYM7.TTF", "flat_officeFontsPreview.ttf", "holomdl2.ttf", "marlett.ttf", "MTEXTRA.TTF", 
-    "OFFSYM.TTF", "OFFSYMB.TTF", "OFFSYML.TTF", "OFFSYMSB.TTF", "OFFSYMSL.TTF", "OFFSYMXL.TTF",
-    "OUTLOOK.TTF", "REFSPCL.TTF" "segmdl2.ttf","webdings.ttf", "wingding.ttf", "WINGDNG2.TTF",
-    "WINGDNG3.TTF"]
+EXCLUDED_FONTS_JSON = "data/excluded-fonts.json"
 
 FONT_PATH = "C:\\Windows\\Fonts" # Windows Font Location
 EXPORT_DIR = "data/letter-recognition"
 
 def main():
     start = time.time()
+
+    excluded_fonts = [ ]
+
+    if os.path.exists(EXCLUDED_FONTS_JSON):
+        excluded_fonts = json.loads(open(EXCLUDED_FONTS_JSON).read())
 
     # Création ou suppression du répertoire d'exportation
     if os.path.exists(EXPORT_DIR):
@@ -43,7 +48,7 @@ def main():
     # Filtrage sur les polices ttf (not fon)
     font_files = [font_file for font_file in font_files if not font_file.lower().endswith('.fon')]
     # Filtrage des polices exclues
-    font_files = [font_file for font_file in font_files if not font_file in EXCLUDED_FONTS]
+    font_files = [font_file for font_file in font_files if not font_file in excluded_fonts]
     # Comptage des fichiers de police
     count = len(font_files)
 
