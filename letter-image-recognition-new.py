@@ -91,7 +91,7 @@ def fetch_dataset(data_dir, distorted=False):
 def input_fn(dataset, n_steps, shuffle, batch_size):
     """Input function"""
     if shuffle:
-        dataset = dataset.shuffle(buffer_size=10000)
+        dataset = dataset.shuffle(buffer_size=100)
     dataset = dataset.batch(batch_size)
     if  not n_steps is None and n_steps > 0:
         dataset = dataset.repeat(n_steps)
@@ -197,10 +197,12 @@ def main(_):
 		Main
     """
     N_STEPS = FLAGS.n_steps
+    BATCH_SIZE = FLAGS.batch_size
     MODEL_DIR = FLAGS.model_dir
     SHOW_PREDICT = FLAGS.show_predict
 
     print("NOMBRE DE PAS : {}".format(N_STEPS))
+    print("TAILLE DES BATCHS : {}".format(BATCH_SIZE))
     print("REPERTOIRE DU MODELE : {}".format(MODEL_DIR))
     print("AFFICHAGE DES PREDICTIONS : {}".format(SHOW_PREDICT))
 
@@ -235,20 +237,32 @@ def main(_):
 
     # Entraînement du réseau de neurones convolutifs
     print("Entraînement du réseau de neurones convolutifs...")
-    cnn.train(input_fn=lambda: input_fn(train_dataset, N_STEPS, True, train_dataset_size),
+    cnn.train(input_fn=lambda: input_fn(train_dataset, N_STEPS, True, BATCH_SIZE),
               hooks=[logging_hook])
     print("FAIT")
 
     # Evaluation du réseau de neurones convolutifs
     print("Evaluation du réseau de neurones convolutifs...")
     eval_results = cnn.evaluate(
-        input_fn=lambda: input_fn(test_dataset, None, False, test_dataset_size))
+        input_fn=lambda: input_fn(test_dataset, None, False, BATCH_SIZE))
     print("FAIT : {}".format(eval_results))
 
     # Prédiction du réseau de neurones convolutifs
     if SHOW_PREDICT:
-        y = cnn.predict(input_fn=lambda: input_fn(predict_dataset, None, False, predict_dataset_size))
+        y = cnn.predict(input_fn=lambda: input_fn(predict_dataset, None, False, BATCH_SIZE))
         pred = list(p["classes"] for p in y)
+        needed_labels = []
+        # Récupération des labels voulus (pour comparaison)
+        iterator = predict_dataset.make_one_shot_iterator()
+        _, labels = iterator.get_next()
+        sess = tf.Session()
+        while True:
+            try:
+                needed_labels.append(sess.run(labels))
+            except tf.errors.OutOfRangeError:
+                break
+        sess.close()
+        print("Résultats voulus : {}".format(str(LB.inverse_transform(needed_labels))))
         print("Predictions: {}".format(str(LB.inverse_transform(pred))))
 
     end = time.time() - start
@@ -262,14 +276,21 @@ if __name__ == "__main__":
         '-n',
         type=int,
         default=1000,
-        help='Number of steps for which to train model'
+        help='Number of steps for which to train model (default 1000)'
+    )
+    parser.add_argument(
+        '--batch_size',
+        '-b',
+        type=int,
+        default=100,
+        help='Size of the batches (default 100)'
     )
     parser.add_argument(
         '--model_dir',
         '-md',
         type=str,
-        default='/tmp/cnn',
-        help='Directory where the checkpoint and the model will be stored'
+        default='/tmp/letter',
+        help='Directory where the checkpoint and the model will be stored (default \'/tmp/letter\')'
     )
     parser.add_argument(
         '--show_predict',
