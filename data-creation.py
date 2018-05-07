@@ -45,6 +45,7 @@ def main():
     # Compte des erreurs et des succès
     error = 0
     success = 0
+    printed = 0
     # Listing des polices du système
     font_files = os.listdir(FONT_PATH)
     # Filtrage sur les polices ttf (not fon)
@@ -70,6 +71,7 @@ def main():
                 draw = ImageDraw.Draw(im)
                 draw.text(LETTER_POS, letter, font=font, fill="black")
                 im.save(export_path, "PNG")
+                printed = printed + 1
             # Création des lettres majuscules
             for letter in string.ascii_uppercase:
                 export_path = "{}/{}/{}_upper.png".format(EXPORT_DIR, letter, font_name)
@@ -77,10 +79,12 @@ def main():
                 draw = ImageDraw.Draw(im)
                 draw.text(LETTER_POS, letter, font=font, fill="black")
                 im.save(export_path, "PNG")
+                printed = printed + 1
             # Ajout du caractère vide
             im = Image.new('RGB', SIZE, (255,255,255))
             export_path = "{}/{}/{}.png".format(EXPORT_DIR, 'empty', font_name)
             im.save(export_path, "PNG")
+            printed = printed + 1
             
         except OSError as ose:
             print("Error : {}".format(ose))
@@ -89,6 +93,7 @@ def main():
     print("Erreurs de chargement : {}".format(error))
     print("Succès de chargement : {}".format(success))
     print("Fichier de police : {}".format(count))
+    print("Images sauvegardées : {}".format(printed))
 
     end = time.time() - start
     minutes, seconds = divmod(end, 60)
