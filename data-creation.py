@@ -39,6 +39,8 @@ def main():
     os.makedirs(EXPORT_DIR)
     # Création des répertoires d'exportation des lettres
     [os.mkdir("{}/{}".format(EXPORT_DIR, letter)) for letter in string.ascii_lowercase]
+    # + Répertoire du caractère vide
+    os.mkdir("{}/{}".format(EXPORT_DIR, 'empty'))
 
     # Compte des erreurs et des succès
     error = 0
@@ -61,20 +63,25 @@ def main():
             font = ImageFont.truetype(font_path, 16)
             print("FONT : {}".format(font_name))
             success = success + 1
-
+            # Création des lettres minuscules
             for letter in string.ascii_lowercase:
                 export_path = "{}/{}/{}_lower.png".format(EXPORT_DIR, letter, font_name)
                 im = Image.new('RGB', SIZE, (255,255,255))
                 draw = ImageDraw.Draw(im)
                 draw.text(LETTER_POS, letter, font=font, fill="black")
                 im.save(export_path, "PNG")
-
+            # Création des lettres majuscules
             for letter in string.ascii_uppercase:
                 export_path = "{}/{}/{}_upper.png".format(EXPORT_DIR, letter, font_name)
                 im = Image.new('RGB', SIZE, (255,255,255))
                 draw = ImageDraw.Draw(im)
                 draw.text(LETTER_POS, letter, font=font, fill="black")
                 im.save(export_path, "PNG")
+            # Ajout du caractère vide
+            im = Image.new('RGB', SIZE, (255,255,255))
+            export_path = "{}/{}/{}.png".format(EXPORT_DIR, 'empty', font_name)
+            im.save(export_path, "PNG")
+            
         except OSError as ose:
             print("Error : {}".format(ose))
             error = error + 1
