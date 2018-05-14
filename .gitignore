@@ -108,6 +108,7 @@ data/excluded-fonts.json
 data/train/
 data/test/
 data/predict/
+data/excluded-fonts.json
 
 # Settings file for Visual Studio Code
 .vscode
