@@ -55,5 +55,5 @@ if __name__ == "__main__":
 
     end = time.time() - start
     minutes, seconds = divmod(end, 60)
-    print("Temps d'exécution : {}m {:.4f}s".format(int(minutes), seconds))
+    print("Execution Time : {}m {:.4f}s".format(int(minutes), seconds))
 
