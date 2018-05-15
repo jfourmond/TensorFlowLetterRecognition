@@ -90,14 +90,14 @@ def main():
             print("Error : {}".format(ose))
             error = error + 1
 
-    print("Erreurs de chargement : {}".format(error))
-    print("Succès de chargement : {}".format(success))
-    print("Fichier de police : {}".format(count))
-    print("Images sauvegardées : {}".format(printed))
+    print("Loading Error : {}".format(error))
+    print("Loading Success : {}".format(success))
+    print("Font Files : {}".format(count))
+    print("Saved Images : {}".format(printed))
 
     end = time.time() - start
     minutes, seconds = divmod(end, 60)
-    print("Temps d'exécution : {}m {:.4f}s".format(int(minutes), seconds))
+    print("Execution Time : {}m {:.4f}s".format(int(minutes), seconds))
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

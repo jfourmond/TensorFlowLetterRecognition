@@ -107,15 +107,15 @@ def main():
 
     cv2.destroyAllWindows()
 
-    print("Fichier de police : {}".format(count))
-    print("Polices Exclues : {}".format(len(excluded_fonts)))
+    print("Font Files : {}".format(count))
+    print("Excluded Fonts : {}".format(len(excluded_fonts)))
 
     with open(EXCLUDED_FONTS_JSON, 'w') as outfile:
             json.dump(excluded_fonts, outfile)
 
     end = time.time() - start
     minutes, seconds = divmod(end, 60)
-    print("Temps d'exécution : {}m {:.4f}s".format(int(minutes), seconds))
+    print("Execution Time : {}m {:.4f}s".format(int(minutes), seconds))
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
