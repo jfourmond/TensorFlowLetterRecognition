@@ -50,6 +50,8 @@ def main():
 
     font_i = 0
     letter_i = 0
+    font_file = ''
+    font_name = ''
 
     cv2.namedWindow('image', cv2.WINDOW_AUTOSIZE)
     while(1):
@@ -59,6 +61,7 @@ def main():
             break
         if key == 101:
             # Exclusion
+            print('Added in excluded police : {}'.format(font_name))
             font_files.remove(font_file)
             if not font_file in excluded_fonts:
                 excluded_fonts.append(font_file)
