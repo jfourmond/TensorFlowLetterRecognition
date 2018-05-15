@@ -105,10 +105,7 @@ data/letter-recognition/
 data/excluded-fonts.json
 
 # Training, evaluation and prediction data
-data/train/
-data/test/
-data/predict/
-data/excluded-fonts.json
+data
 
 # Settings file for Visual Studio Code
 .vscode
