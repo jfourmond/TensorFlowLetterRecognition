@@ -32,7 +32,7 @@ def main():
     # Concaténation verticale
     image = np.vstack(horizons)
 
-    cv2.imshow('Image', image)
+    cv2.imshow('LETTER {}'.format(LETTER), image)
 
     cv2.waitKey()
 
