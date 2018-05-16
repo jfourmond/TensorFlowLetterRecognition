@@ -1,116 +1,72 @@
 # Letter Recognition
 
-Python Deep Learning on the "[Letter Image Recognition Data](https://archive.ics.uci.edu/ml/machine-learning-databases/letter-recognition/)" with TensorFlow
+Deep Learning on Letters with TensorFlow : Convolutional Neural Network
+
+|[<img alt="FOURMOND Jérôme" src="https://avatars2.githubusercontent.com/u/15089371" width="100" />](https://github.com/jfourmond) |
+|:------------------------:|
+|[@jfourmond](https://github.com/jfourmond) |
 
 ---
 
+## Goal
+
+The goal of the model is simple : read and synthesize the letter on the image which has been given to the network.
+
+Further application could be text reading...
+
+## Libraries
+
+- [OpenCV](https://opencv-python-tutroals.readthedocs.io/en/latest/)
+- [Pillow](https://pillow.readthedocs.io/en/3.1.x/index.html)
+
 ## Data
 
-The "[Letter Image Recognition Data](https://archive.ics.uci.edu/ml/machine-learning-databases/letter-recognition/)" comes from the [the UC Irvine Machine Learning Repository](http://archive.ics.uci.edu/ml/).
+Our Convolutional Neural Network use local fonts to be trained and be evaluated. That's why a few preliminary scripts should be run.
 
-As specifiy in the [data description](https://archive.ics.uci.edu/ml/machine-learning-databases/letter-recognition/letter-recognition.names), the dataset is composed of 17 attributes (one label and 16 features).
+### Font Verification - [1-font-verification.py](1-font-verification.py)
 
-Its main goal is :
-> The objective is to identify each of a large number of black-and-white rectangular pixel displays as one of the 26 capital letters in the English alphabet.  The character images were based on 20 different fonts and each letter within these 20 fonts was randomly distorted to produce a file of 20,000 unique stimuli.  Each stimulus was converted into 16 primitive numerical attributes (statistical moments and edge counts) which were then scaled to fit into a range of integer values from 0 through 15.  We typically train on the first 16000 items and then use the resulting model to predict the letter category for the remaining 4000.
+> `python 1-font-verification.py`
 
-**This isn't image recognition.**
+The first script allow the user to evaluate on which font the model will be allowed to be trained and evaluated.
 
-This project was made to learn TensorFlow, and use one Deep Neural Network for classification, similarly as the Housing Data from the [TensorFlow library Get Started Page](https://www.tensorflow.org/get_started/input_fn).
-The results obtained from the Deep Neural Network are compared to the results of the Random Forest.
+The user will be prompt to check and choose to exclude (or not) each font readable with the [Pillow](https://pillow.readthedocs.io/en/3.1.x/index.html) Library. For example, webdings fonts are readable by this library but not humanly readable.
 
-The original dataset has been divided in 3 parts : the training dataset, the test dataset, and the evaluation dataset.
+The excluded fonts will be added in a json file (`data/excluded-fonts.json`) which will be used in the next script.
 
-## Models
+### Data Creation - [2-data-creation.py](2-data-creation.py)
 
-The model is trained on the ***16000*** examples of the [letter-recognition-training.csv](https://github.com/jfourmond/TensorFlowLetterRecognition/blob/master/letter-recognition-training.csv) file, evaluated on the ***3900*** examples of the [letter-recognition-test.csv](https://github.com/jfourmond/TensorFlowLetterRecognition/blob/master/letter-recognition-test.csv) file, and finally predictions are made on the 100 ***examples*** of the [letter-recognition-eval.csv](https://github.com/jfourmond/TensorFlowLetterRecognition/blob/master/letter-recognition-eval.csv) file as a demonstration of the model.
+> `python 2-data-creation.py`
 
-### Deep Learning Model
+The second script, with local fonts and the json file `data/excluded-fonts.json`, will stored each lowercase and uppercase letters of each fonts not excluded in the directory `data/letter-recognition/`.
 
-> ` letter-recognition-dnn.py [-h] [--model_dir MODEL_DIR] [--n_steps N_STEPS] [--results_file RESULTS_FILE] [--hidden_units [HIDDEN_UNITS [HIDDEN_UNITS ...]]]`
+### Dataset Building - [3-dataset-building.py](3-dataset-building.py)
 
-> `$> python letter-recognition-dnn.py --hidden_units 8 8 8`
+> `python 3-dataset-building.py`
 
-The Deep Neural Network model has the following optional configurable caracteristics :
-- hidden_units : an array depicted the number of neurons per layer (for example `[10, 20]` means two hidden layers with 10 neurons on the first one, and 20 on the second)
-- model_dir : the directory where the model will be stored
+The third is the dataset building script. Based on the directory `data/letter-recognition/`, the script will create a directory of training images (`data/train`), a directory of test images (`data/test`) and a final directory of images for prediction (`data/predict`)
 
-It is possible to edit the activation functions or the optimizer.
+### Bonus - [data-img-visualizer.py](data-img-visualizer.py)
 
-```python
-classifier = tf.estimator.DNNClassifier(
-      		hidden_units=HIDDEN_UNITS,
-	      	feature_columns=feature_cols,
-		 	    model_dir=MODEL_DIR,
-			     n_classes=26,
-			     label_vocabulary=LABEL_VOCABULARY)
-```
+> `python data_img_visualizer.py LETTER`
 
-In order to configure those settings, the script present several arguments :
-- model_dir : the directory where the model will be stored (default : `/tmp/letter-recognition-dnn`)
-- n_steps : the number of steps for which to train the model (default : `10000`)
-- results_file : File where the results of the model could be stored (default : `None`)
-- hidden_units : the array for the number of hidden units per layer (default : `[16, 16, 16]`)
+The Img Visualizer is a bonus script used in order to visualize every stored images of the specify letter.
 
-### Random Forest Model
+<img src="img/letter_j.PNG" width="550" />
 
-> `$> letter-recognition-rf.py [-h] [--max_depth MAX_DEPTH] [--n_trees N_TREES] [--random_state RANDOM_STATE] [--results_file RESULTS_FILE]`
+## Convolutional Neural Network
 
-> `$> python letter-recognition-rf.py --n_trees=10 --random_state=0`
+Two very close models can be build, each one with a different script. The only difference is the prediction result : one give only the highest rank label, while the other give the highest rank label and his probability.
 
-The Random Forest model has the following optional configurable caracteristics :
-- n_estimators : the number of trees in the forest
-- max_depth : the maximum depth of the tree
-- random_state : the seed used by the random number generator
+### Build, train and evaluate the model
 
-```python
-clf = RandomForestClassifier(
-        n_estimators=N_TREES,
-        max_depth=MAX_DEPTH,
-        random_state=RANDOM_STATE)
-```
+> `python letter-image-recognition.py -n 600 -b 50 -md /tmp/letter -p True`
 
-In order to configure those settings, the script present several arguments :
-- max_depth : the maximum depth of the tree (default : `None`)
-- n_trees : the number of trees in the forest (default : `10`)
-- random_state : the seed used by the random number generator (default : `None`)
-- results_file : File where the results of the model could be stored (default : `None`)
+> `python letter-image-recognition-prob.py -n 600 -b 50 -md /tmp/letter-prob -p True`
 
-### Visualisation
+### Use case
 
-TensorBoard can be used in order to visualize the graph, or the learning process, of the neural network, by specifying the model directory...
+> `python image_reading.py /tmp/letter img/alphabet.png`
 
-``` $> tensorboard --logdir=/tmp/letter-recognition```
+> `python image_reading_prob.py /tmp/letter-prob img/alphabet.png`
 
-### Accuracy
-
-#### Machine Configuration
-
-- OS : Windows 7 Professionnel 64 bits
-- CPU : Intel(R) Core(TM)2 Duo CPU P8600 @ 2.40GHz 2.39GHz
-- RAM : 4 Go
-
-#### Deep Neural Network
-
-The following graph show the accuracy evolution of the Deep Neural Network Classifier model depending on the number of units per layers. Only five layers has been tested, each with the same amount of units.
-
-The results are obtained by the campaign batch script *[campaign_dnn.bat](campaign_dnn_1_layers.bat)* which should be run with an unique argument corresponding to the number of layers of the neural network. The script execute the deep neural network python script several times with 10000 steps from 1 to 100 units per layer and create a CSV file *[letter-recognition-dnn-[layer].csv]*, in our case :
-- [letter-recognition-dnn-1-layers.csv](letter-recognition-dnn-1-layers.csv)
-- [letter-recognition-dnn-2-layers.csv](letter-recognition-dnn-2-layers.csv)
-- [letter-recognition-dnn-3-layers.csv](letter-recognition-dnn-3-layers.csv)
-- [letter-recognition-dnn-4-layers.csv](letter-recognition-dnn-4-layers.csv)
-- [letter-recognition-dnn-5-layers.csv](letter-recognition-dnn-5-layers.csv)
-
-The chart can be visualised [here](https://htmlpreview.github.io/?https://github.com/jfourmond/TensorFlowLetterRecognition/blob/master/visualisation/dnn-vizu.html).
-
-![Neural Network Visualisation](visualisation/dnn-evolution.png)
-
-#### Random Forest
-
-The following graph show the accuracy evolution of the Random Forest model depending on the number of trees.
-The results are obtained by the campaign batch script *[campaign_rf.bat](campaign_rf.bat)*, which create the CSV file *[letter-recognition-rf.csv](letter-recognition-rf.csv)*.
-
-The chart can be visualised [here](https://htmlpreview.github.io/?https://github.com/jfourmond/TensorFlowLetterRecognition/blob/master/visualisation/rf-vizu.html).
-
-The results can be fully visualised [here](letter-recognition-rf.csv).
-
-![Random Forest Visualisation](visualisation/rf-evolution.png)
+> `python image_reading_static.py /tmp/letter-prob img/hello_world_uppercase.png`
