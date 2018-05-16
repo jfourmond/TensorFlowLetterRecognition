@@ -100,12 +100,8 @@ ENV/
 # mypy
 .mypy_cache/
 
-# Data generated
-data/letter-recognition/
-data/excluded-fonts.json
-
-# Training, evaluation and prediction data
-data
+# Data directory
+data/
 
 # Settings file for Visual Studio Code
 .vscode

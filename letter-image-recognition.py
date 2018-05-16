@@ -41,8 +41,10 @@ def distorted_parse(filename, label):
 
     # Randomly crop a [height, width] section of the image.
     distorted_image = tf.random_crop(image_decoded, [height, width, 3])
-    # Randomly flip the image horizontally.
+    # TODO Remove : Randomly flip the image horizontally.
     distorted_image = tf.image.random_flip_left_right(distorted_image)
+    # TODO Randomly translate ?
+    # TODO
     # Because these operations are not commutative, consider randomizing
     # the order their operation.
     distorted_image = tf.image.random_brightness(distorted_image, max_delta=63)
@@ -275,8 +277,8 @@ if __name__ == "__main__":
         '--n_steps',
         '-n',
         type=int,
-        default=1000,
-        help='Number of steps for which to train model (default 1000)'
+        default=100,
+        help='Number of steps for which to train model (default 100)'
     )
     parser.add_argument(
         '--batch_size',
